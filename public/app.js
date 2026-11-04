@@ -7,8 +7,15 @@ const fmt=d=>d?new Date(d).toLocaleString('id-ID',{day:'numeric',month:'short',h
 function plainText(s){const d=document.createElement('div');d.innerHTML=String(s||'');return d.textContent||''}
 function textToHtml(t){return String(t||'').split(/\n\s*\n/).map(p=>`<p>${esc(p).replace(/\n/g,'<br>')}</p>`).join('')}
 function bodyToHtml(b){const s=String(b||'');return /<[a-z][\s\S]*>/i.test(s)?sanitizeHTML(s):textToHtml(s)}
-function sanitizeHTML(html){const doc=new DOMParser().parseFromString(String(html||''),'text/html');const allowed={B:1,I:1,U:1,S:1,STRONG:1,EM:1,MARK:1,CODE:1,P:1,BR:1,DIV:1,SPAN:1,H2:1,H3:1,UL:1,OL:1,LI:1,BLOCKQUOTE:1,PRE:1,A:1};
- doc.querySelectorAll('*').forEach(el=>{if(!allowed[el.tagName]){el.replaceWith(...el.childNodes);return} [...el.attributes].forEach(a=>{if(a.name==='href'&&el.tagName==='A'&&!/^(https?:|mailto:)/i.test(a.value))el.removeAttribute('href');else if(a.name!=='href')el.removeAttribute(a.name)})});return doc.body.innerHTML}
+function sanitizeHTML(html){const doc=new DOMParser().parseFromString(String(html||''),'text/html');const allowed={B:1,I:1,U:1,S:1,STRIKE:1,STRONG:1,EM:1,MARK:1,CODE:1,P:1,BR:1,DIV:1,SPAN:1,FONT:1,H1:1,H2:1,H3:1,H4:1,UL:1,OL:1,LI:1,BLOCKQUOTE:1,PRE:1,A:1,HR:1,TABLE:1,THEAD:1,TBODY:1,TR:1,TD:1,TH:1,SUB:1,SUP:1};
+ const styleTags={SPAN:1,FONT:1,P:1,DIV:1,H1:1,H2:1,H3:1,TD:1,TH:1,MARK:1};
+ doc.querySelectorAll('*').forEach(el=>{if(!allowed[el.tagName]){el.replaceWith(...el.childNodes);return} [...el.attributes].forEach(a=>{const n=a.name.toLowerCase();let keep=false;
+  if(el.tagName==='A'&&n==='href'&&/^(https?:|mailto:)/i.test(a.value)){keep=true;el.setAttribute('target','_blank');el.setAttribute('rel','noopener noreferrer')}
+  else if(styleTags[el.tagName]&&n==='style'){const safe=String(a.value).split(';').filter(x=>/^\s*(color|background-color|text-align)\s*:/i.test(x)).join(';');if(safe){el.setAttribute('style',safe);keep=true}else el.removeAttribute('style')}
+  else if(styleTags[el.tagName]&&(n==='color'||n==='bgcolor')){keep=/^#[0-9a-f]{3,8}$/i.test(a.value)||/^[a-z]+$/i.test(a.value)}
+  else if(n==='colspan'||n==='rowspan'){keep=/^\d{1,2}$/.test(a.value)}
+  if(!keep&&!(el.tagName==='A'&&n==='href'))el.removeAttribute(a.name); if(el.tagName==='A'&&n==='href'&&!keep)el.removeAttribute('href')})});return doc.body.innerHTML}
+function updateCount(){const txt=plainText($('#edBody').innerHTML);const w=txt?txt.split(/\s+/).filter(Boolean).length:0;const el=$('#edCount');if(el)el.textContent=w+' kata · '+txt.length+' karakter'}
 function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;setTimeout(()=>t.hidden=true,2600)}
 async function probe(){try{const r=await fetch('/api/health');serverMode=r.ok}catch(e){serverMode=false}$('#modeText').textContent=serverMode?'Tersimpan di server Anda (SQLite). Bisa dibuka dari perangkat lain di jaringan yang sama.':'Mode lokal di perangkat ini (penyimpanan browser). Jalankan server.py untuk mode server.'}
 async function load(){await probe(); if(serverMode){try{notes=await (await fetch('/api/notes')).json()}catch(e){serverMode=false;notes=JSON.parse(localStorage.getItem('notaku.notes.v1')||'[]')}}else notes=JSON.parse(localStorage.getItem('notaku.notes.v1')||'[]'); if(!notes.length && !localStorage.getItem('notaku.seeded')){seed();localStorage.setItem('notaku.seeded','1')} render()}
@@ -60,16 +67,16 @@ function openEditor(n){ editing=n||null; kind=(n&&n.items&&n.items.length)?'chec
  $('#edHistory').innerHTML=n&&n.history&&n.history.length?`<strong>Riwayat (${n.history.length})</strong> `+n.history.slice(-5).reverse().map((h,i)=>`<button class="btn small" data-h="${n.history.length-1-i}">Pulihkan versi ${fmt(h.at)}</button>`).join(''):'';
  $$('#edHistory button').forEach(b=>b.onclick=()=>{const h=editing.history[+b.dataset.h]; $('#edTitle').value=h.title; $('#edBody').innerHTML=bodyToHtml(h.body); items=JSON.parse(JSON.stringify(h.items||[])); renderItems(); toast('Versi riwayat dimuat ke editor, simpan untuk menerapkan')});
  $('#btnDuplicate').hidden=!n; $('#btnTrash').hidden=!n||n.trashed; $('#btnDelete').hidden=!n||!n.trashed; $('#btnRestore').hidden=!n||!n.trashed;
- $('#composer').hidden=false; renderItems(); $('#edTitle').focus(); window.scrollTo({top:0,behavior:'smooth'})}
+ $('#composer').hidden=false; renderItems(); updateCount(); $('#edTitle').focus(); window.scrollTo({top:0,behavior:'smooth'})}
 function renderItems(){ $('#edItems').innerHTML=items.map((it,i)=>`<div class="check-item"><input type="checkbox" ${it.done?'checked':''} data-i="${i}"><input type="text" class="${it.done?'done':''}" value="${esc(it.text)}" data-t="${i}"><button class="btn small" data-d="${i}">Hapus</button></div>`).join('');
  $$('#edItems input[type=checkbox]').forEach(c=>c.onchange=()=>{items[+c.dataset.i].done=c.checked;renderItems()});
  $$('#edItems input[type=text]').forEach(c=>c.onchange=()=>{items[+c.dataset.t].text=c.value});
  $$('#edItems button').forEach(b=>b.onclick=()=>{items.splice(+b.dataset.d,1);renderItems()}); }
 function closeEditor(){ $('#composer').hidden=true; editing=null }
-const templates={rapat:{title:'Rapat — ',body:'Tujuan:\n\nKeputusan:\n\nTindak lanjut:\n- ',items:[]},harian:{title:'Tugas hari ini',body:'',items:[{id:uid(),text:'Tugas terpenting hari ini',done:false},{id:uid(),text:'Balas pesan penting',done:false}]},belanja:{title:'Belanja',body:'',items:[{id:uid(),text:'',done:false}]},ide:{title:'Ide: ',body:'Masalah:\n\nIde:\n\nLangkah pertama:\n',items:[]}};
+const templates={rapat:{title:'Rapat — ',body:'Tujuan:\n\nKeputusan:\n\nTindak lanjut:\n- ',items:[]},harian:{title:'Tugas hari ini',body:'',items:[{id:uid(),text:'Tugas terpenting hari ini',done:false},{id:uid(),text:'Balas pesan penting',done:false}]},belanja:{title:'Belanja',body:'',items:[{id:uid(),text:'',done:false}]},ide:{title:'Ide: ',body:'Masalah:\n\nIde:\n\nLangkah pertama:\n',items:[]},artikel:{title:'Artikel: ',html:'<h1>Judul artikel</h1><p>Paragraf pembuka yang menjelaskan inti artikel dalam satu atau dua kalimat.</p><h2>Subjudul</h2><p>Isi bagian ini dengan penjelasan, contoh, atau data pendukung.</p>',items:[]}};
 $('#btnNew').onclick=()=>openEditor(null); $('#btnEmptyNew').onclick=()=>openEditor(null);
 $$('.tab').forEach(t=>t.onclick=()=>{kind=t.dataset.kind;$$('.tab').forEach(x=>x.classList.toggle('active',x===t));$('#edChecklist').hidden=kind!=='checklist';$('#edBody').hidden=kind==='checklist';$('#edToolbar').hidden=kind==='checklist'});
-$('#edTemplate').onchange=e=>{const t=templates[e.target.value];if(!t)return;$('#edTitle').value=t.title;$('#edBody').innerHTML=textToHtml(t.body);items=JSON.parse(JSON.stringify(t.items));if(t.items.length){kind='checklist';$$('.tab').forEach(x=>x.classList.toggle('active',x.dataset.kind==='checklist'));$('#edChecklist').hidden=false;$('#edBody').hidden=true;$('#edToolbar').hidden=true}renderItems()};
+$('#edTemplate').onchange=e=>{const t=templates[e.target.value];if(!t)return;$('#edTitle').value=t.title;$('#edBody').innerHTML=t.html?sanitizeHTML(t.html):textToHtml(t.body);updateCount();items=JSON.parse(JSON.stringify(t.items));if(t.items.length){kind='checklist';$$('.tab').forEach(x=>x.classList.toggle('active',x.dataset.kind==='checklist'));$('#edChecklist').hidden=false;$('#edBody').hidden=true;$('#edToolbar').hidden=true}renderItems()};
 $('#btnAddItem').onclick=()=>{const v=$('#edNewItem').value.trim();if(!v)return;items.push({id:uid(),text:v,done:false});$('#edNewItem').value='';renderItems()};
 $('#edNewItem').onkeydown=e=>{if(e.key==='Enter')$('#btnAddItem').click()};
 $('#edImage').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{imageData=r.result;$('#edImageName').textContent=f.name};r.readAsDataURL(f)};
@@ -102,6 +109,14 @@ document.addEventListener('keydown',e=>{if(e.key==='n'&&!['INPUT','TEXTAREA','SE
 $$('#edToolbar button[data-cmd]').forEach(b=>b.onclick=()=>{$('#edBody').focus();document.execCommand(b.dataset.cmd,false,null)});
 $$('#edToolbar button[data-block]').forEach(b=>b.onclick=()=>{$('#edBody').focus();document.execCommand('formatBlock',false,b.dataset.block)});
 $('#btnLink').onclick=()=>{const u=prompt('Alamat tautan (https://…)');if(!u)return;$('#edBody').focus();document.execCommand('createLink',false,u)};
-$('#btnHighlight').onclick=()=>{$('#edBody').focus();document.execCommand('hiliteColor',false,'#f2d65c')};
-$('#edBody').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='b'){e.preventDefault();document.execCommand('bold')} if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='i'){e.preventDefault();document.execCommand('italic')} if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='u'){e.preventDefault();document.execCommand('underline')}});
+$('#fmtBlock').onchange=e=>{$('#edBody').focus();document.execCommand('formatBlock',false,e.target.value)};
+$('#fmtColor').oninput=e=>{$('#edBody').focus();document.execCommand('foreColor',false,e.target.value)};
+$('#fmtHilite').oninput=e=>{$('#edBody').focus();document.execCommand('hiliteColor',false,e.target.value)};
+$('#fmtClearColor').onclick=()=>{$('#edBody').focus();document.execCommand('foreColor',false,'inherit');document.execCommand('hiliteColor',false,'transparent')};
+$$('#edToolbar button[data-align]').forEach(b=>b.onclick=()=>{$('#edBody').focus();document.execCommand(b.dataset.align==='left'?'justifyLeft':b.dataset.align==='center'?'justifyCenter':'justifyRight',false,null)});
+$('#fmtCode').onclick=()=>{const sel=window.getSelection();const txt=sel&&sel.toString()?sel.toString():'kode';$('#edBody').focus();document.execCommand('insertHTML',false,'<code>'+esc(txt)+'</code>');updateCount()};
+$('#fmtHR').onclick=()=>{$('#edBody').focus();document.execCommand('insertHTML',false,'<hr><p><br></p>');updateCount()};
+$('#fmtTable').onclick=()=>{$('#edBody').focus();document.execCommand('insertHTML',false,'<table><tbody><tr><td>Sel 1</td><td>Sel 2</td></tr><tr><td>Sel 3</td><td>Sel 4</td></tr></tbody></table><p><br></p>');updateCount()};
+$('#edBody').addEventListener('input',updateCount);
+$('#edBody').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='b'){e.preventDefault();document.execCommand('bold')} if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='i'){e.preventDefault();document.execCommand('italic')} if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='u'){e.preventDefault();document.execCommand('underline')} if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();$('#btnLink').click()}});
 load();

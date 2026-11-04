@@ -11,6 +11,9 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600;6..72,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -48,7 +51,7 @@
         <input type="file" id="fileImport" accept="application/json" hidden>
       </div>
       <p class="muted">Ekspor rutin adalah cadangan Anda. File cadangan tidak pernah dikirim ke pihak lain.</p>
-      <p class="muted">Versi prod: <strong>v7</strong> · Ikon menu &amp; editor gaya demo</p>
+      <p class="muted">Versi prod: <strong>v8</strong> · UI &amp; editor gaya demo</p>
     </div>
   </aside>
   <main class="main">
@@ -57,28 +60,41 @@
       <div class="composer-tabs">
         <button class="tab active" data-kind="note" type="button">Catatan</button>
         <button class="tab" data-kind="checklist" type="button">Checklist</button>
-        <select id="edTemplate" aria-label="Template"><option value="">Template…</option><option value="rapat">Rapat</option><option value="harian">Tugas harian</option><option value="belanja">Belanja</option><option value="ide">Ide</option></select>
+        <select id="edTemplate" aria-label="Template"><option value="">Template…</option><option value="rapat">Rapat</option><option value="harian">Tugas harian</option><option value="belanja">Belanja</option><option value="ide">Ide</option><option value="artikel">Artikel</option></select>
       </div>
       <div id="edToolbar" class="toolbar" role="toolbar" aria-label="Format teks">
+        <select id="fmtBlock" aria-label="Gaya paragraf" title="Gaya paragraf"><option value="p">Teks biasa</option><option value="h1">Judul besar</option><option value="h2">Judul</option><option value="h3">Subjudul</option><option value="blockquote">Kutipan</option><option value="pre">Blok kode</option></select>
+        <span class="fmt-sep"></span>
+        <button type="button" data-cmd="undo" title="Urungkan (Ctrl+Z)">↩</button>
+        <button type="button" data-cmd="redo" title="Ulangi (Ctrl+Y)">↪</button>
+        <span class="fmt-sep"></span>
         <button type="button" data-cmd="bold" title="Tebal (Ctrl+B)"><b>B</b></button>
         <button type="button" data-cmd="italic" title="Miring (Ctrl+I)"><i>I</i></button>
         <button type="button" data-cmd="underline" title="Garis bawah (Ctrl+U)"><u>U</u></button>
         <button type="button" data-cmd="strikeThrough" title="Coret"><s>S</s></button>
-        <button type="button" data-block="h2" title="Judul besar"><strong>H2</strong></button>
-        <button type="button" data-block="h3" title="Subjudul"><strong>H3</strong></button>
-        <button type="button" data-block="p" title="Teks biasa">¶</button>
+        <span class="fmt-sep"></span>
+        <label class="color-wrap" title="Warna teks">A<input type="color" id="fmtColor" value="#1f6f4a"></label>
+        <label class="color-wrap" title="Sorot / highlight" style="background:#fff3a6">▮<input type="color" id="fmtHilite" value="#fdf3d8"></label>
+        <button type="button" id="fmtClearColor" title="Hapus warna">A✕</button>
+        <span class="fmt-sep"></span>
         <button type="button" data-cmd="insertUnorderedList" title="Daftar bullet">•≡</button>
-        <button type="button" data-cmd="insertOrderedList" title="Daftar bernomor">1≡</button>
-        <button type="button" data-block="blockquote" title="Kutipan">❝</button>
-        <button type="button" data-block="pre" title="Kode">&lt;/&gt;</button>
-        <button type="button" id="btnLink" title="Sisipkan tautan">LINK</button>
-        <button type="button" id="btnHighlight" title="Sorot teks">▮</button>
+        <button type="button" data-cmd="insertOrderedList" title="Daftar nomor">1≡</button>
+        <button type="button" data-cmd="outdent" title="Geser keluar">⇤</button>
+        <button type="button" data-cmd="indent" title="Geser masuk">⇥</button>
+        <span class="fmt-sep"></span>
+        <button type="button" data-align="left" title="Rata kiri">⬅</button>
+        <button type="button" data-align="center" title="Rata tengah">↔</button>
+        <button type="button" data-align="right" title="Rata kanan">➡</button>
+        <span class="fmt-sep"></span>
+        <button type="button" id="btnLink" title="Sisipkan tautan (Ctrl+K)">LINK</button>
+        <button type="button" id="fmtCode" title="Kode sebaris">&lt;/&gt;</button>
+        <button type="button" id="fmtHR" title="Garis pemisah">―</button>
+        <button type="button" id="fmtTable" title="Sisipkan tabel 2×2">▦</button>
+        <span class="fmt-sep"></span>
         <button type="button" data-cmd="removeFormat" title="Bersihkan format">Tx</button>
-        <button type="button" data-cmd="undo" title="Urungkan">↩</button>
-        <button type="button" data-cmd="redo" title="Ulangi">↪</button>
       </div>
       <div id="edBody" class="rich-editor" contenteditable="true" role="textbox" aria-label="Isi catatan" data-placeholder="Tulis catatan di sini. Blokir teks lalu pakai toolbar di atas untuk memformatnya."></div>
-      <p class="muted">Pintasan: Ctrl+B tebal, Ctrl+I miring, Ctrl+U garis bawah. Google Keep tidak punya format seperti ini, jadi ini sengaja dibuat lebih lengkap.</p>
+      <div class="editor-meta-bar"><span id="edCount">0 kata · 0 karakter</span><span><span class="kbd">Ctrl+B</span> tebal · <span class="kbd">Ctrl+I</span> miring · <span class="kbd">Ctrl+K</span> tautan</span></div>
       <div id="edChecklist" class="checklist-editor" hidden>
         <div id="edItems"></div>
         <div class="add-item"><input id="edNewItem" placeholder="Item checklist baru"><button class="btn small" id="btnAddItem" type="button">Tambah</button></div>
@@ -126,6 +142,6 @@
 </div>
 <div class="toast" id="toast" hidden></div>
 <script src="app.js"></script>
-<script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js?v=7').then(r=>{if(r.update) r.update();}).catch(()=>{}); }</script>
+<script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js?v=8').then(r=>{if(r.update) r.update();}).catch(()=>{}); }</script>
 </body>
 </html>

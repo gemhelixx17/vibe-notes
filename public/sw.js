@@ -1,4 +1,4 @@
-const CACHE='notaku-v7'; const SHELL=['./','index.html','styles.css','app.js','manifest.webmanifest','icons/icon.svg','icons/icon-192.png','icons/icon-512.png'];
+const CACHE='notaku-v8'; const SHELL=['./','index.html','styles.css','app.js','manifest.webmanifest','icons/icon.svg','icons/icon-192.png','icons/icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>Promise.allSettled(SHELL.map(u=>c.add(u)))).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{const u=new URL(e.request.url); if(u.pathname.startsWith('/api/')) return; const isAppShell=u.pathname.endsWith('/')||u.pathname.endsWith('index.html')||u.pathname.endsWith('styles.css')||u.pathname.endsWith('app.js');
