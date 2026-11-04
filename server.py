@@ -64,6 +64,14 @@ class H(SimpleHTTPRequestHandler):
         super().__init__(*a, directory=os.path.join(BASE, "public"), **kw)
     def log_message(self, *a):
         sys.stderr.write("%s\n" % " ".join(str(x) for x in a))
+    def end_headers(self):
+        # Paksa browser/proxy tidak memakai salinan lama untuk file yang
+        # menentukan tampilan: ini penyebab 'redeploy berhasil tapi UI lama'
+        # — service worker lama + HTTP cache menyajikan index/CSS/JS lama.
+        p = urlparse(self.path).path
+        if p in ("/", "/index.html", "/styles.css", "/app.js", "/sw.js", "/manifest.webmanifest"):
+            self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
+        super().end_headers()
     def send_json(self, obj, code=200):
         body = json.dumps(obj).encode()
         self.send_response(code); self.send_header("Content-Type", "application/json"); self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)

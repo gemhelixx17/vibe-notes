@@ -48,7 +48,7 @@
         <input type="file" id="fileImport" accept="application/json" hidden>
       </div>
       <p class="muted">Ekspor rutin adalah cadangan Anda. File cadangan tidak pernah dikirim ke pihak lain.</p>
-      <p class="muted">Versi prod: <strong>v6</strong> · Ikon menu &amp; editor gaya demo</p>
+      <p class="muted">Versi prod: <strong>v7</strong> · Ikon menu &amp; editor gaya demo</p>
     </div>
   </aside>
   <main class="main">
@@ -126,6 +126,6 @@
 </div>
 <div class="toast" id="toast" hidden></div>
 <script src="app.js"></script>
-<script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(()=>{}); }</script>
+<script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js?v=7').then(r=>{if(r.update) r.update();}).catch(()=>{}); }</script>
 </body>
 </html>
