@@ -15,6 +15,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .topbar{position:sticky;top:0;z-index:10;display:flex;gap:16px;align-items:center;padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border)}
 .brand{display:flex;align-items:center;gap:8px;white-space:nowrap}
 .brand-mark{width:20px;height:24px;background:var(--accent);border-radius:3px 8px 3px 3px;display:inline-block}
+.brand-icon{width:28px;height:28px;border-radius:6px;flex:none;display:block}
 .brand-sub{color:var(--muted);font-size:13px}
 .search{flex:1;display:flex;gap:8px;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:4px 12px}
 .search input{border:0;background:transparent;flex:1;outline:none}
