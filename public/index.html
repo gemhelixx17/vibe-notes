@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notaku — Catatan self-host</title>
+<meta name="description" content="Notaku: catatan PWA self-host. Data Anda, di server Anda.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1f6f4a">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn only-mobile" id="btnMenu" aria-label="Menu">Menu</button>
+  <div class="brand"><span class="brand-mark" aria-hidden="true"></span><strong>Notaku</strong><span class="brand-sub">Catatan self-host</span></div>
+  <div class="search"><input id="q" type="search" placeholder="Cari catatan, label, atau isi checklist" aria-label="Cari"></div>
+  <div class="top-actions">
+    <select id="sort" aria-label="Urutkan"><option value="updated">Terakhir diubah</option><option value="created">Terbaru dibuat</option><option value="title">Judul A-Z</option></select>
+    <button class="btn" id="btnView" type="button">Tampilan daftar</button>
+    <button class="btn" id="btnTheme" type="button">Mode gelap</button>
+    <button class="btn primary" id="btnNew" type="button">+ Catatan baru</button>
+  </div>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <nav>
+      <button class="nav-item active" data-view="notes">Catatan</button>
+      <button class="nav-item" data-view="reminders">Pengingat</button>
+      <button class="nav-item" data-view="pinned">Disematkan</button>
+      <button class="nav-item" data-view="archive">Arsip</button>
+      <button class="nav-item" data-view="trash">Sampah</button>
+    </nav>
+    <div class="side-label">Label</div>
+    <div id="labelList" class="label-list"></div>
+    <div class="side-label">Warna</div>
+    <div id="colorFilter" class="color-row"></div>
+    <button class="btn small" id="btnClearFilter" type="button">Hapus semua filter</button>
+    <div class="side-card">
+      <strong>Data Anda, di server Anda</strong>
+      <p id="modeText">Memeriksa mode penyimpanan…</p>
+      <div class="side-actions">
+        <button class="btn small" id="btnExport" type="button">Ekspor JSON</button>
+        <button class="btn small" id="btnImport" type="button">Impor JSON</button>
+        <input type="file" id="fileImport" accept="application/json" hidden>
+      </div>
+      <p class="muted">Ekspor rutin adalah cadangan Anda. File cadangan tidak pernah dikirim ke pihak lain.</p>
+    </div>
+  </aside>
+  <main class="main">
+    <section class="composer" id="composer" hidden>
+      <input id="edTitle" placeholder="Judul" aria-label="Judul">
+      <div class="composer-tabs">
+        <button class="tab active" data-kind="note" type="button">Catatan</button>
+        <button class="tab" data-kind="checklist" type="button">Checklist</button>
+        <select id="edTemplate" aria-label="Template"><option value="">Template…</option><option value="rapat">Rapat</option><option value="harian">Tugas harian</option><option value="belanja">Belanja</option><option value="ide">Ide</option></select>
+      </div>
+      <div id="edToolbar" class="toolbar" role="toolbar" aria-label="Format teks">
+        <button type="button" data-cmd="bold" title="Tebal (Ctrl+B)"><b>B</b></button>
+        <button type="button" data-cmd="italic" title="Miring (Ctrl+I)"><i>I</i></button>
+        <button type="button" data-cmd="underline" title="Garis bawah (Ctrl+U)"><u>U</u></button>
+        <button type="button" data-cmd="strikeThrough" title="Coret"><s>S</s></button>
+        <button type="button" data-block="h2" title="Judul besar">Judul</button>
+        <button type="button" data-block="h3" title="Subjudul">Subjudul</button>
+        <button type="button" data-block="p" title="Teks biasa">Teks</button>
+        <button type="button" data-cmd="insertUnorderedList" title="Daftar bullet">Daftar</button>
+        <button type="button" data-cmd="insertOrderedList" title="Daftar bernomor">Nomor</button>
+        <button type="button" data-block="blockquote" title="Kutipan">Kutip</button>
+        <button type="button" data-block="pre" title="Kode">Kode</button>
+        <button type="button" id="btnLink" title="Sisipkan tautan">Tautan</button>
+        <button type="button" id="btnHighlight" title="Sorot teks">Sorot</button>
+        <button type="button" data-cmd="removeFormat" title="Bersihkan format">Bersihkan</button>
+        <button type="button" data-cmd="undo" title="Urungkan">Urungkan</button>
+        <button type="button" data-cmd="redo" title="Ulangi">Ulangi</button>
+      </div>
+      <div id="edBody" class="rich-editor" contenteditable="true" role="textbox" aria-label="Isi catatan" data-placeholder="Tulis catatan di sini. Blokir teks lalu pakai toolbar di atas untuk memformatnya."></div>
+      <p class="muted">Pintasan: Ctrl+B tebal, Ctrl+I miring, Ctrl+U garis bawah. Google Keep tidak punya format seperti ini, jadi ini sengaja dibuat lebih lengkap.</p>
+      <div id="edChecklist" class="checklist-editor" hidden>
+        <div id="edItems"></div>
+        <div class="add-item"><input id="edNewItem" placeholder="Item checklist baru"><button class="btn small" id="btnAddItem" type="button">Tambah</button></div>
+      </div>
+      <div class="editor-row">
+        <input id="edLabels" placeholder="Label, pisahkan dengan koma">
+        <input id="edReminder" type="datetime-local" aria-label="Pengingat">
+        <select id="edRepeat" aria-label="Ulangi"><option value="none">Sekali saja</option><option value="daily">Harian</option><option value="weekly">Mingguan</option><option value="monthly">Bulanan</option></select>
+      </div>
+      <div class="editor-row">
+        <label class="field">Warna <select id="edColor"><option value="default">Putih kertas</option><option value="cream">Krem</option><option value="sage">Hijau sage</option><option value="blue">Biru abu</option><option value="blush">Merah muda lembut</option><option value="sand">Pasir</option></select></label>
+        <label class="check"><input type="checkbox" id="edPinned"> Sematkan</label>
+        <label class="check"><input type="checkbox" id="edArchived"> Arsipkan</label>
+      </div>
+      <div class="editor-row">
+        <input type="file" id="edImage" accept="image/*" aria-label="Lampirkan gambar">
+        <span id="edImageName" class="muted"></span>
+      </div>
+      <div id="edHistory" class="history"></div>
+      <div class="editor-actions">
+        <button class="btn primary" id="btnSave" type="button">Simpan</button>
+        <button class="btn" id="btnCancel" type="button">Batal</button>
+        <button class="btn" id="btnDuplicate" type="button" hidden>Duplikat</button>
+        <button class="btn danger" id="btnTrash" type="button" hidden>Pindah ke sampah</button>
+        <button class="btn danger" id="btnDelete" type="button" hidden>Hapus permanen</button>
+        <button class="btn" id="btnRestore" type="button" hidden>Pulihkan</button>
+        <span id="edMeta" class="muted"></span>
+      </div>
+    </section>
+
+    <div class="bulkbar" id="bulkbar" hidden>
+      <span id="bulkCount"></span>
+      <button class="btn small" id="btnBulkArchive" type="button">Arsipkan</button>
+      <button class="btn small" id="btnBulkTrash" type="button">Ke sampah</button>
+      <button class="btn small" id="btnBulkRestore" type="button">Pulihkan</button>
+      <button class="btn small" id="btnBulkClear" type="button">Batalkan pilihan</button>
+    </div>
+
+    <div class="stats" id="stats"></div>
+    <h2 id="viewTitle">Catatan</h2>
+    <p class="muted" id="viewHint">Klik kartu untuk mengedit. Centang kartu untuk aksi massal.</p>
+    <div id="notes"></div>
+    <div id="empty" class="empty" hidden><strong>Belum ada catatan di sini</strong><p>Buat catatan baru, atau ubah filter dan tampilan di atas.</p><button class="btn primary" id="btnEmptyNew" type="button">+ Catatan baru</button></div>
+  </main>
+</div>
+<div class="toast" id="toast" hidden></div>
+<script src="app.js"></script>
+<script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(()=>{}); }</script>
+</body>
+</html>

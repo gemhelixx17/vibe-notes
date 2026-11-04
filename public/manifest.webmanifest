@@ -1,0 +1,1 @@
+{"background_color":"#f5f3ee","description":"Catatan PWA self-host. Data Anda, di server Anda.","display":"standalone","icons":[{"sizes":"192x192","src":"icons/icon-192.png","type":"image/png"},{"sizes":"512x512","src":"icons/icon-512.png","type":"image/png"}],"name":"Notaku","scope":"./","short_name":"Notaku","start_url":"./","theme_color":"#1f6f4a"}

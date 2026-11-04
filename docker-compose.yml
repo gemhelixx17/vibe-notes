@@ -1,0 +1,12 @@
+services:
+  notaku:
+    build: .
+    image: notaku:latest
+    container_name: notaku
+    restart: unless-stopped
+    ports:
+      - "${NOTAKU_PORT:-3000}:3000"
+    volumes:
+      # Data SQLite tetap di host, di folder data/ yang sama seperti versi systemd.
+      # Jangan hapus folder ini saat update: docker compose up -d --build saja.
+      - ./data:/app/data
