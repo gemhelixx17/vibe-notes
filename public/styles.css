@@ -28,8 +28,10 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .only-mobile{display:none}
 .layout{display:flex;align-items:flex-start;max-width:1440px;margin:0 auto}
 .sidebar{width:248px;flex:none;position:sticky;top:65px;padding:20px 12px 20px 20px}
-.nav-item{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);padding:9px 12px;border-radius:8px;cursor:pointer}
+.nav-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);padding:9px 12px;border-radius:8px;cursor:pointer}
+.nav-item svg{flex:none;color:var(--muted)}
 .nav-item.active{background:var(--surface2);font-weight:600}
+.nav-item.active svg{color:var(--accent)}
 .side-label{font-size:14px;color:var(--muted);margin:24px 8px 8px}
 .label-list,.color-row{display:flex;flex-wrap:wrap;gap:8px;padding:0 8px}
 .chip{border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:4px 10px;font-size:14px;cursor:pointer}
