@@ -5,7 +5,7 @@ Seperti Google Keep, tapi data dipegang Anda sendiri. Tidak ada akun cloud, tida
 ## Yang lebih baik dari Google Keep
 
 - **Self-host penuh:** backend Python stdlib saja (tanpa npm, tanpa dependensi), database satu file SQLite `data/notaku.db` di server Anda.
-- **PWA installable + offline:** manifest, service worker, ikon 192/512. Tanpa server pun tetap jalan di mode lokal browser (localStorage) — berguna saat server mati.
+- **PWA installable + offline:** manifest, service worker, ikon 192/512. Tanpa server pun tetap jalan di mode lokal browser (localStorage) — berguna saat server mati. Catatan: ikon PNG sengaja tidak disimpan di repo GitHub (push biner ditolak konektor), server membuatnya otomatis dengan Python stdlib saat pertama jalan, jadi deploy dari repo tetap menampilkan ikon.
 - **Riwayat versi:** setiap simpan menyimpan snapshot, bisa pulihkan 5 versi terakhir dari editor.
 - **Checklist dengan progres:** persentase selesai di kartu, bukan sekadar coret.
 - **Pengingat berulang:** sekali, harian, mingguan, bulanan, plus penanda lewat waktu.
